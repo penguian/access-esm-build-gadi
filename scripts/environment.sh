@@ -14,7 +14,6 @@ export C_INCLUDE_PATH=/apps/netcdf/4.7.1/include/Intel:$C_INCLUDE_PATH
 export CPLUS_INCLUDE_PATH=/apps/netcdf/4.7.1/include/Intel:$CPLUS_INCLUDE_PATH
 export CPATH=/apps/netcdf/4.7.1/include/Intel:$CPATH
 export FPATH=/apps/netcdf/4.7.1/include/Intel:$FPATH
-SYSTEMDIR=$MY_PATH/../../
 
 ##DUMMYGRIB
 export RPATH=/g/data/p66/pbd562/projects/access/apps/dummygrib/lib:$RPATH
