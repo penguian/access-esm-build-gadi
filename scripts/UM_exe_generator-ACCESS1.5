@@ -1,0 +1,56 @@
+#!/bin/bash
+# this script builds UM in HadGEM3 configuration
+# depending on argument It also builds debug executatbles 
+
+MY_PATH=$(dirname $(readlink -f $0))
+PBS_O_WORKDIR=${PBS_O_WORKDIR:-$MY_PATH}
+cd $PBS_O_WORKDIR
+
+#raijin
+source /opt/Modules/3.2.6/init/sh
+
+# Source the environment settings
+
+source ../../../scripts/environment.sh
+
+SYSTEMDIR=$MY_PATH/../../
+
+# these variables are referenced in the fcm bld.cfg scripts
+#export CPLINCDIR_OMPI=/apps/openmpi/1.10.2/include 
+#export CPLINCDIR_GCOM=/projects/access/apps/gcom/6.3_ompi.1.10.2/include 
+#export CPLINCDIR_OASIS=/projects/access/apps/oasis3-mct/ompi.1.10.2/include
+#export CPL_INCS='-I${CPLINCDIR_OMPI} -I${CPLINCDIR_GCOM} -I${CPLINCDIR_OASIS}'
+#export CPLLIBDIR_OMPI=/apps/openmpi/1.10.2/lib
+#export CPLLIBDIR_GCOM=/projects/access/apps/gcom/6.3_ompi.1.10.2/lib 
+#export CPLLIBDIR_OASIS=/projects/access/apps/oasis3-mct/ompi.1.10.2/lib 
+#export CPLLIBS_OMPI='-L${CPLLIBDIR_OMPI}'
+#export CPLLIBS_GCOM='-L${CPLLIBDIR_GCOM} -lgcom'
+#export CPLLIBS_OASIS='-L${CPLLIBDIR_OASIS} -lpsmile.MPI1 -lmct -lmpeu -lscrip'
+#export CPL_OPT='-O0 '
+#export CPL_FLAGS='-std95 -g -traceback -fp-model precise -ftz '
+#export CPL_KIND='-i8 -r8 '
+
+HG=3 # build HadGEM3 ONLY here
+
+# Whether to build debug --jhan: adjust path to configs
+BLD_CONFIG=bld-hadgem${HG}-mct.cfg
+EXEC=um_hg${HG}.exe
+if [ "$2" == "debug" ]
+then
+    BLD_CONFIG=bld-dbg-hadgem${HG}.cfg
+    EXEC=um_hg${HG}_dbg.exe-$2
+fi
+
+# Model build only ## Base build # rm'd superfluous
+# ~~~~~~~~~~~~~~~~
+echo "Model build... Start"
+# force full build with -f
+fcm build -v 3 -f -j 4 $SYSTEMDIR/UM/ummodel_hg${HG}/cfg/$BLD_CONFIG || exit 2
+# incremental build
+#fcm build -v 3 -j 4 $SYSTEMDIR/UM/ummodel_hg${HG}/cfg/$BLD_CONFIG || exit 2
+echo "Model build... OK"
+
+# copy UM executable to bin directory to avoid deleting it on a rebuild
+cp -f $SYSTEMDIR/UM/ummodel_hg${HG}/bin/$EXEC $SYSTEMDIR/../bin/$EXEC
+cp -f $SYSTEMDIR/UM/ummodel_hg${HG}/bin/$EXEC $SYSTEMDIR/../bin/$EXEC-`date +%Y%m%d`
+
