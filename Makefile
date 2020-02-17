@@ -16,6 +16,7 @@ oasis: lib/oasis
 gcom: lib/gcom
 dummygrib: lib/dummygrib
 
+srcs: src/UM src/mom5 src/cice4.1
 
 # the environment.sh script
 #-----------------------------
@@ -34,13 +35,17 @@ module load um
 OASIS_MANUAL=False
 if [ "$$OASIS_MANUAL" == "True" ]; then
 	PBD_OASIS_DIR=$${PWD}/lib/oasis
-	export FPATH=$${PBD_OASIS_DIR}/Linux/build/lib/psmile.MPI1/:$${PBD_OASIS_DIR}/Linux/build/lib/mctdir/mct:$${PBD_OASIS_DIR}/Linux/build/lib/scrip:$$FPATH
-	export LIBRARY_PATH=$${PBD_OASIS_DIR}/Linux/lib:$$LIBRARY_PATH
-	export LD_LIBRARY_PATH=$${PBD_OASIS_DIR}/Linux/lib:$$LD_LIBRARY_PATH
-	export RPATH=$${PBD_OASIS_DIR}/Linux/lib:$$RPATH
-	export LD_RUN_PATH=$${PBD_OASIS_DIR}/Linux/lib:$$LD_RUN_PATH
+	export OASIS_INCLUDE_DIR=$${PBD_OASIS_DIR}/include
+	export OASIS_LIB_DIR=$${PBD_OASIS_DIR}/lib
+	export FPATH=$${OASIS_INCLUDE_DIR}:$$FPATH
+	export LIBRARY_PATH=$${OASIS_LIB_DIR}:$$LIBRARY_PATH
+	export LD_LIBRARY_PATH=$${OASIS_LIB_DIR}:$$LD_LIBRARY_PATH
+	export RPATH=$${OASIS_LIB_DIR}:$$RPATH
+	export LD_RUN_PATH=$${OASIS_LIB_DIR}:$$LD_RUN_PATH
 else
 	module load oasis3-mct-local/ompi.4.0.2
+	export OASIS_LIB_DIR=$$(echo $$LIBRARY_PATH | tr : '\n' | grep oasis | head -n 1)
+	export OASIS_INCLUDE_DIR=$$(echo $$FPATH | tr : '\n' | grep oasis | head -n 1)
 fi
 # OASIS END
 
@@ -91,6 +96,10 @@ bin/um_hg3.exe: src/UM $(ENVFILE) lib/dummygrib | bin
 
 src/cice4.1: | src
 	scp -r accessdev.nci.org.au:/scratch/users/hxw599/access-esm/sources/cice4.1 $@
+	sed -i 's/\([[:space:]]*setenv CPLLIBDIR\).*$$/\1 $$OASIS_LIB_DIR/' $@/compile/comp_access-cm_cice.RJ.nP-mct
+	sed -i 's/\([[:space:]]*setenv CPLINCDIR\).*$$/\1 $$OASIS_INCLUDE_DIR/' $@/compile/comp_access-cm_cice.RJ.nP-mct
+	rm -f $@/compile/environs.raijin.nci.org.au ; touch $@/compile/environs.raijin.nci.org.au
+	cp patch/Macros.Linux.raijin.nci.org.au-mct $@/bld
 
 bin/cice-12p: src/cice4.1 $(ENVFILE) | bin
 	source $(ENVFILE) ; cd $</compile ; csh ./comp_access-cm_cice.RJ.nP-mct 12
@@ -123,7 +132,10 @@ ifeq (oasis,$(findstring oasis,$(MAKECMDGOALS)))
 	@sed -i '/OASIS_MANUAL=/c\OASIS_MANUAL=True' $(ENVFILE)
 	@source $(ENVFILE) ; cd $< ; $(MAKE) -f Makefile
 	@test -d $@ || mkdir $@ 
-	@mv $</Linux $@/
+	@mkdir -p $@/include
+	@cp $</Linux/build/lib/scrip/*.mod $</Linux/build/lib/psmile.MPI1/*.mod $</Linux/build/lib/mct/*.mod $@/include
+	@rm -rf $@/lib
+	@cp -r $</Linux/lib $@
 endif
 
 lib/gcom: src/gcom lib $(ENVFILE) lib/dummygrib
@@ -141,4 +153,4 @@ ifeq (gcom,$(findstring gcom,$(MAKECMDGOALS)))
 	cp -r $</build $@
 endif
 
-.PHONY: um mom5 cice gcom oasis all
+.PHONY: um mom5 cice gcom oasis all srcs
