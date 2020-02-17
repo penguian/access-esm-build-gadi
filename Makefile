@@ -87,13 +87,13 @@ bin src lib :
 	@test -d $@ || mkdir -p $@
 
 bin/um_hg3.exe: src/UM $(ENVFILE) lib/dummygrib | bin
-	cd src/UM/compile; ./compile_ACCESS1.5
+	source $(ENVFILE) ; cd src/UM/compile; ./compile_ACCESS1.5
 
 src/cice4.1: | src
 	scp -r accessdev.nci.org.au:/scratch/users/hxw599/access-esm/sources/cice4.1 $@
 
 bin/cice-12p: src/cice4.1 $(ENVFILE) | bin
-	source $(ENVFILE); cd $</compile; csh ./comp_access-cm_cice.RJ.nP-mct 12
+	source $(ENVFILE) ; cd $</compile ; csh ./comp_access-cm_cice.RJ.nP-mct 12
 
 bin/mom5xx : src/mom5 $(ENVFILE) | bin
 	source $(ENVFILE); cd $</exp; ./MOM_compile.csh --platform=access-cm2 --type=ACCESS-CM
@@ -102,8 +102,8 @@ bin/mom5xx : src/mom5 $(ENVFILE) | bin
 src/dummygrib: | src
 	git clone https://github.com/coecms/dummygrib.git $@
 
-lib/dummygrib: src/dummygrib | lib
-	@cd $< ; $(MAKE)
+lib/dummygrib: src/dummygrib $(ENVFILE) | lib
+	@source $(ENVFILE) ; cd $< ; $(MAKE)
 	@test -d $@ || mkdir $@
 	@cp $</libdummygrib.a $@
 
