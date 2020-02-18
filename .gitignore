@@ -2,3 +2,4 @@ bin
 src
 scripts/environment.sh
 lib
+environment.sh
