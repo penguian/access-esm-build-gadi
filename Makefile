@@ -2,7 +2,7 @@
 # This section contains some scripts and script-snippets for the build process
 ######################################
 
-ENVFILE=environment.sh
+ENVFILE=./environment.sh
 
 
 # DEFAULT TARGET: ALL (UM, MOM5, CICE)
@@ -127,7 +127,7 @@ lib/oasis: src/oasis $(ENVFILE) | lib
 ifeq (oasis,$(findstring oasis,$(MAKECMDGOALS)))
 	@echo "Requested OASIS build"
 	@sed -i '/OASIS_MANUAL=/c\OASIS_MANUAL=True' $(ENVFILE)
-	@source $(ENVFILE) ; cd $< ; $(MAKE) -f Makefile
+	@sleep 1 ; source $(ENVFILE) ; cd $< ; $(MAKE) -f Makefile
 	@test -d $@ || mkdir $@ 
 	@mkdir -p $@/include
 	@cp $</Linux/build/lib/scrip/*.mod $</Linux/build/lib/psmile.MPI1/*.mod $</Linux/build/lib/mct/*.mod $@/include
