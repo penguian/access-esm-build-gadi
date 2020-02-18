@@ -20,6 +20,6 @@
 
 ### Build environment:
 
-A file scripts/environment.sh is created automatically by the makefile, it can be edited if required.
+A file environment.sh is created automatically by the makefile, it can be edited if required.
 This file sets up the build environment for all submodules.
 

@@ -2,7 +2,7 @@
 # This section contains some scripts and script-snippets for the build process
 ######################################
 
-ENVFILE=scripts/environment.sh
+ENVFILE=environment.sh
 
 
 # DEFAULT TARGET: ALL (UM, MOM5, CICE)
@@ -77,22 +77,32 @@ export ENVIRONMENT
 $(ENVFILE):
 	@echo "$$ENVIRONMENT" > $@
 
+
+bin src lib :
+	@test -d $@ || mkdir -p $@
+
+# This section is about getting the sources for the libraries and the submodules
+#------------------------------------
+
+src/oasis: | src
+	git clone -b new_modules https://github.com/coecms/oasis3-mct.git $@
+	rm -rf $@/util/make_dir/config.nci
+	touch $@/util/make_dir/config.nci
+
+src/dummygrib: | src
+	git clone https://github.com/coecms/dummygrib.git $@
+
+src/gcom: | src
+	scp -r accessdev.nci.org.au:/scratch/users/hxw599/access-esm/sources/gcom $@
+	sed -i '/build.target{ns}/d' $@/fcm-make/gcom.cfg
+	sed -i 's/-openmp/-qopenmp/g' $@/fcm-make/machines/nci_ifort_openmpi.cfg
+
 src/UM : | src
-	#git clone accessdev.nci.org.au:/scratch/users/hxw599/submodels/UM $@
-	#RN=$$RANDOM ;
-	#ssh accessdev.nci.org.au "source ~/.bash_profile ; mkdir -p /scratch/users/$$USER/tmp/$$RN/ ; cd /scratch/users/$$USER/tmp/$$RN ; svn co https://access-svn.nci.org.au/svn/cmip5/trunk_ESM1.5/submodels/UM ; rm /scratch/users/$$USER/tmp/$$RN/UM/ummodel_hg3/bin/fcm_env.ksh " ; 
-	#scp -r accessdev.nci.org.au:/scratch/users/$$USER/tmp/$$RN/UM $@
 	scp -r accessdev.nci.org.au:/scratch/users/hxw599/access-esm/sources/UM $@
 	cp patch/UM_exe_generator-ACCESS1.5 $@/compile/
 
 src/mom5: | src
 	git clone https://github.com/OceansAus/ACCESS-ESM1.5-MOM5.git $@
-
-bin src lib :
-	@test -d $@ || mkdir -p $@
-
-bin/um_hg3.exe: src/UM $(ENVFILE) lib/dummygrib | bin
-	source $(ENVFILE) ; cd src/UM/compile; ./compile_ACCESS1.5
 
 src/cice4.1: | src
 	scp -r accessdev.nci.org.au:/scratch/users/hxw599/access-esm/sources/cice4.1 $@
@@ -101,30 +111,17 @@ src/cice4.1: | src
 	rm -f $@/compile/environs.raijin.nci.org.au ; touch $@/compile/environs.raijin.nci.org.au
 	cp patch/Macros.Linux.raijin.nci.org.au-mct $@/bld
 
-bin/cice-12p: src/cice4.1 $(ENVFILE) | bin
-	source $(ENVFILE) ; cd $</compile ; csh ./comp_access-cm_cice.RJ.nP-mct 12
 
-bin/mom5xx : src/mom5 $(ENVFILE) | bin
-	source $(ENVFILE); cd $</exp; ./MOM_compile.csh --platform=access-cm2 --type=ACCESS-CM
-	cp src/mom5/exec/access-cm2/ACCESS-CM/fms_ACCESS-CM.x $@
+# This section describes how to compile the libraries.
+# -----------------------------
 
-src/dummygrib: | src
-	git clone https://github.com/coecms/dummygrib.git $@
-
+# DummyGRIB is a library that doesn't do anything, but is needed as 
+# UM and GCOM want to include a library called "GRIB" even though it
+# does nothing here.
 lib/dummygrib: src/dummygrib $(ENVFILE) | lib
 	@source $(ENVFILE) ; cd $< ; $(MAKE)
 	@test -d $@ || mkdir $@
 	@cp $</libdummygrib.a $@
-
-src/oasis: | src
-	git clone -b new_modules https://github.com/coecms/oasis3-mct.git $@
-	rm -rf $@/util/make_dir/config.nci
-	touch $@/util/make_dir/config.nci
-
-src/gcom: | src
-	scp -r accessdev.nci.org.au:/scratch/users/hxw599/access-esm/sources/gcom $@
-	sed -i '/build.target{ns}/d' $@/fcm-make/gcom.cfg
-	sed -i 's/-openmp/-qopenmp/g' $@/fcm-make/machines/nci_ifort_openmpi.cfg
 
 lib/oasis: src/oasis $(ENVFILE) | lib
 ifeq (oasis,$(findstring oasis,$(MAKECMDGOALS)))
@@ -147,10 +144,22 @@ ifeq (gcom,$(findstring gcom,$(MAKECMDGOALS)))
 	ACTION="preprocess build" GCOM_MACHINE=nci_ifort_openmpi \
 	DATE=x \
 	fcm make -f fcm-make/gcom.cfg #-C gcom
-	#@source $(ENVFILE) ; cd $< ; \
-	#GCOM_MACHINE=nci_ifort_openmpi DATE=x fcm make -f fcm-make/gcom.cfg -C gcom
 	test -d $@ || mkdir $@
 	cp -r $</build $@
 endif
+
+
+# Finally, the submodel binaries
+# ---------------------------------
+
+bin/um_hg3.exe: src/UM $(ENVFILE) lib/dummygrib | bin
+	source $(ENVFILE) ; cd src/UM/compile; ./compile_ACCESS1.5
+
+bin/cice-12p: src/cice4.1 $(ENVFILE) | bin
+	source $(ENVFILE) ; cd $</compile ; csh ./comp_access-cm_cice.RJ.nP-mct 12
+
+bin/mom5xx : src/mom5 $(ENVFILE) | bin
+	source $(ENVFILE); cd $</exp; ./MOM_compile.csh --platform=access-cm2 --type=ACCESS-CM
+	cp src/mom5/exec/access-cm2/ACCESS-CM/fms_ACCESS-CM.x $@
 
 .PHONY: um mom5 cice gcom oasis all srcs
