@@ -93,19 +93,19 @@ src/dummygrib: | src
 	git clone https://github.com/coecms/dummygrib.git $@
 
 src/gcom: | src
-	scp -r accessdev.nci.org.au:/scratch/users/hxw599/access-esm/sources/gcom $@
+	svn co file:///g/data/access/access-svn/GCOM/branches/dev/Share/gcom4.5_access_config $@
 	sed -i '/build.target{ns}/d' $@/fcm-make/gcom.cfg
 	sed -i 's/-openmp/-qopenmp/g' $@/fcm-make/machines/nci_ifort_openmpi.cfg
 
 src/UM : | src
-	scp -r accessdev.nci.org.au:/scratch/users/hxw599/access-esm/sources/UM $@
+	svn co file:///g/data/access/access-svn/cmip5/branches/dev/jxs599/trunk_ESM1.5/submodels/UM $@
 	cp patch/UM_exe_generator-ACCESS1.5 $@/compile/
 
 src/mom5: | src
 	git clone https://github.com/OceansAus/ACCESS-ESM1.5-MOM5.git $@
 
 src/cice4.1: | src
-	scp -r accessdev.nci.org.au:/scratch/users/hxw599/access-esm/sources/cice4.1 $@
+	svn co file:///g/data/access/access-svn/cmip5/branches/dev/jxs599/trunk_ESM1.5/submodels/cice4.1 $@
 	sed -i 's/\([[:space:]]*setenv CPLLIBDIR\).*$$/\1 $$OASIS_LIB_DIR/' $@/compile/comp_access-cm_cice.RJ.nP-mct
 	sed -i 's/\([[:space:]]*setenv CPLINCDIR\).*$$/\1 $$OASIS_INCLUDE_DIR/' $@/compile/comp_access-cm_cice.RJ.nP-mct
 	rm -f $@/compile/environs.raijin.nci.org.au ; touch $@/compile/environs.raijin.nci.org.au
