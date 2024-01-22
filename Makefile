@@ -98,7 +98,8 @@ src/gcom: | src
 	sed -i 's/-openmp/-qopenmp/g' $@/fcm-make/machines/nci_ifort_openmpi.cfg
 
 src/UM : | src
-	svn co $(SUBMODELS_REPO)/UM $@
+	git clone git@github.com:ACCESS-NRI/UM_v7 $@
+	mv $@/UM/* $@/
 	cp patch/UM_exe_generator-ACCESS1.5 $@/compile/
 
 src/mom5: | src
