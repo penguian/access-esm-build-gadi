@@ -92,14 +92,20 @@ src/dummygrib: | src
 	git clone https://github.com/coecms/dummygrib.git $@
 
 src/gcom: | src
-	git clone -b dev git@github.com:ACCESS-NRI/GCOM $@
-	mv $@/Share/gcom4.5_access_config/* $@
+	rm -rf $@
+	rm -rf src/GCOM-git
+	git clone -b dev git@github.com:ACCESS-NRI/GCOM src/GCOM-git
+	mv src/GCOM-git/Share/gcom4.5_access_config $@
+	rm -rf src/GCOM-git
 	sed -i '/build.target{ns}/d' $@/fcm-make/gcom.cfg
 	sed -i 's/-openmp/-qopenmp/g' $@/fcm-make/machines/nci_ifort_openmpi.cfg
 
 src/UM : | src
-	git clone git@github.com:ACCESS-NRI/UM_v7 $@
-	mv $@/UM/* $@/
+	rm -rf $@
+	rm -rf src/UM_v7-git
+	git clone git@github.com:ACCESS-NRI/UM_v7 src/UM_v7-git
+	mv src/UM_v7-git/UM $@
+	rm -rf src/UM_v7-git
 	cp patch/UM_exe_generator-ACCESS1.5 $@/compile/
 
 src/mom5: | src

@@ -6,12 +6,9 @@ MY_PATH=$(dirname $(readlink -f $0))
 PBS_O_WORKDIR=${PBS_O_WORKDIR:-$MY_PATH}
 cd $PBS_O_WORKDIR
 
-#raijin
-source /opt/Modules/3.2.6/init/sh
-
 # Source the environment settings
 
-source ../../../scripts/environment.sh
+source ../../../environment.sh
 
 SYSTEMDIR=$MY_PATH/../../
 
