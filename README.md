@@ -1,6 +1,6 @@
 # ACCESS ESM Build Environment for GADI
 
-## Prerequisits
+## Prerequisites
 
 - Need passwordless login on accessdev from gadi
 
