@@ -9,6 +9,7 @@ ENVFILE=./environment.sh
 all : um mom5 cice
 
 um: bin/um_hg3.exe
+um_dbg: bin/um_hg3_dbg.exe
 mom5: bin/mom5xx
 cice: bin/cice-12p
 oasis: lib/oasis
@@ -147,6 +148,9 @@ endif
 
 bin/um_hg3.exe: src/UM $(ENVFILE) lib/dummygrib lib/oasis | bin
 	source $(ENVFILE) ; cd src/UM/compile; ./compile_ACCESS1.5
+
+bin/um_hg3_dbg.exe: src/UM $(ENVFILE) lib/dummygrib lib/oasis | bin
+	source $(ENVFILE) ; cd src/UM/compile; ./compile_ACCESS1.5 debug
 
 bin/cice-12p: src/cice4.1 $(ENVFILE) lib/oasis | bin
 	source $(ENVFILE) ; cd $</compile ; csh ./comp_access-cm_cice.RJ.nP-mct 12
