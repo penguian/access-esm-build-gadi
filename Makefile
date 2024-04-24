@@ -28,24 +28,17 @@ module load intel-mkl/2019.3.199
 module load netcdf/4.7.1
 module load openmpi/4.0.2
 module load fcm/2019.09.0
-module load um 
+module load um
 
 # OASIS BEGIN
-OASIS_MANUAL=False
-if [ "$$OASIS_MANUAL" == "True" ]; then
-	PBD_OASIS_DIR=$${PWD}/lib/oasis
-	export OASIS_INCLUDE_DIR=$${PBD_OASIS_DIR}/include
-	export OASIS_LIB_DIR=$${PBD_OASIS_DIR}/lib
-	export FPATH=$${OASIS_INCLUDE_DIR}:$$FPATH
-	export LIBRARY_PATH=$${OASIS_LIB_DIR}:$$LIBRARY_PATH
-	export LD_LIBRARY_PATH=$${OASIS_LIB_DIR}:$$LD_LIBRARY_PATH
-	export RPATH=$${OASIS_LIB_DIR}:$$RPATH
-	export LD_RUN_PATH=$${OASIS_LIB_DIR}:$$LD_RUN_PATH
-else
-	module load oasis3-mct-local/ompi.4.0.2
-	export OASIS_LIB_DIR=$$(echo $$LIBRARY_PATH | tr : '\n' | grep oasis | head -n 1)
-	export OASIS_INCLUDE_DIR=$$(echo $$FPATH | tr : '\n' | grep oasis | head -n 1)
-fi
+PBD_OASIS_DIR=$${PWD}/lib/oasis
+export OASIS_INCLUDE_DIR=$${PBD_OASIS_DIR}/include
+export OASIS_LIB_DIR=$${PBD_OASIS_DIR}/lib
+export FPATH=$${OASIS_INCLUDE_DIR}:$$FPATH
+export LIBRARY_PATH=$${OASIS_LIB_DIR}:$$LIBRARY_PATH
+export LD_LIBRARY_PATH=$${OASIS_LIB_DIR}:$$LD_LIBRARY_PATH
+export RPATH=$${OASIS_LIB_DIR}:$$RPATH
+export LD_RUN_PATH=$${OASIS_LIB_DIR}:$$LD_RUN_PATH
 # OASIS END
 
 # GCOM BEGIN
@@ -84,12 +77,12 @@ bin src lib :
 #------------------------------------
 
 src/oasis: | src
-	git clone -b new_modules https://github.com/coecms/oasis3-mct.git $@
+	git clone -b access-esm1.5 https://github.com/ACCESS-NRI/oasis3-mct.git $@
 	rm -rf $@/util/make_dir/config.nci
 	touch $@/util/make_dir/config.nci
 
 src/dummygrib: | src
-	git clone https://github.com/coecms/dummygrib.git $@
+	git clone https://github.com/ACCESS-NRI/dummygrib.git $@
 
 src/gcom: | src
 	rm -rf $@
@@ -102,10 +95,7 @@ src/gcom: | src
 
 src/UM : | src
 	rm -rf $@
-	rm -rf src/UM_v7-git
-	git clone git@github.com:ACCESS-NRI/UM_v7 src/UM_v7-git
-	mv src/UM_v7-git/UM $@
-	rm -rf src/UM_v7-git
+	git clone git@github.com:ACCESS-NRI/UM_v7 $@
 	cp patch/UM_exe_generator-ACCESS1.5 $@/compile/
 
 src/mom5: | src
@@ -122,7 +112,7 @@ src/cice4.1: | src
 # This section describes how to compile the libraries.
 # -----------------------------
 
-# DummyGRIB is a library that doesn't do anything, but is needed as 
+# DummyGRIB is a library that doesn't do anything, but is needed as
 # UM and GCOM want to include a library called "GRIB" even though it
 # does nothing here.
 lib/dummygrib: src/dummygrib $(ENVFILE) | lib
@@ -131,16 +121,12 @@ lib/dummygrib: src/dummygrib $(ENVFILE) | lib
 	@cp $</libdummygrib.a $@
 
 lib/oasis: src/oasis $(ENVFILE) | lib
-ifeq (oasis,$(findstring oasis,$(MAKECMDGOALS)))
-	@echo "Requested OASIS build"
-	@sed -i '/OASIS_MANUAL=/c\OASIS_MANUAL=True' $(ENVFILE)
 	@sleep 1 ; source $(ENVFILE) ; cd $< ; $(MAKE) -f Makefile
-	@test -d $@ || mkdir $@ 
+	@test -d $@ || mkdir $@
 	@mkdir -p $@/include
 	@cp $</Linux/build/lib/scrip/*.mod $</Linux/build/lib/psmile.MPI1/*.mod $</Linux/build/lib/mct/*.mod $@/include
 	@rm -rf $@/lib
 	@cp -r $</Linux/lib $@
-endif
 
 lib/gcom: src/gcom lib $(ENVFILE) lib/dummygrib
 ifeq (gcom,$(findstring gcom,$(MAKECMDGOALS)))
@@ -159,13 +145,13 @@ endif
 # Finally, the submodel binaries
 # ---------------------------------
 
-bin/um_hg3.exe: src/UM $(ENVFILE) lib/dummygrib | bin
+bin/um_hg3.exe: src/UM $(ENVFILE) lib/dummygrib lib/oasis | bin
 	source $(ENVFILE) ; cd src/UM/compile; ./compile_ACCESS1.5
 
-bin/cice-12p: src/cice4.1 $(ENVFILE) | bin
+bin/cice-12p: src/cice4.1 $(ENVFILE) lib/oasis | bin
 	source $(ENVFILE) ; cd $</compile ; csh ./comp_access-cm_cice.RJ.nP-mct 12
 
-bin/mom5xx : src/mom5 $(ENVFILE) | bin
+bin/mom5xx : src/mom5 $(ENVFILE) lib/oasis | bin
 	source $(ENVFILE); cd $</exp; ./MOM_compile.csh --platform=access-cm2 --type=ACCESS-CM
 	cp src/mom5/exec/access-cm2/ACCESS-CM/fms_ACCESS-CM.x $@
 
