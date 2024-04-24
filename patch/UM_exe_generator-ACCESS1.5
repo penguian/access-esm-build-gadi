@@ -12,21 +12,6 @@ source ../../../environment.sh
 
 SYSTEMDIR=$MY_PATH/../../
 
-# these variables are referenced in the fcm bld.cfg scripts
-#export CPLINCDIR_OMPI=/apps/openmpi/1.10.2/include 
-#export CPLINCDIR_GCOM=/projects/access/apps/gcom/6.3_ompi.1.10.2/include 
-#export CPLINCDIR_OASIS=/projects/access/apps/oasis3-mct/ompi.1.10.2/include
-#export CPL_INCS='-I${CPLINCDIR_OMPI} -I${CPLINCDIR_GCOM} -I${CPLINCDIR_OASIS}'
-#export CPLLIBDIR_OMPI=/apps/openmpi/1.10.2/lib
-#export CPLLIBDIR_GCOM=/projects/access/apps/gcom/6.3_ompi.1.10.2/lib 
-#export CPLLIBDIR_OASIS=/projects/access/apps/oasis3-mct/ompi.1.10.2/lib 
-#export CPLLIBS_OMPI='-L${CPLLIBDIR_OMPI}'
-#export CPLLIBS_GCOM='-L${CPLLIBDIR_GCOM} -lgcom'
-#export CPLLIBS_OASIS='-L${CPLLIBDIR_OASIS} -lpsmile.MPI1 -lmct -lmpeu -lscrip'
-#export CPL_OPT='-O0 '
-#export CPL_FLAGS='-std95 -g -traceback -fp-model precise -ftz '
-#export CPL_KIND='-i8 -r8 '
-
 HG=3 # build HadGEM3 ONLY here
 
 # Whether to build debug --jhan: adjust path to configs
@@ -34,8 +19,8 @@ BLD_CONFIG=bld-hadgem${HG}-mct.cfg
 EXEC=um_hg${HG}.exe
 if [ "$2" == "debug" ]
 then
-    BLD_CONFIG=bld-dbg-hadgem${HG}.cfg
-    EXEC=um_hg${HG}_dbg.exe-$2
+    BLD_CONFIG=bld-dbg-hadgem${HG}-C2.cfg
+    EXEC=um_hg${HG}_dbg.exe
 fi
 
 # Model build only ## Base build # rm'd superfluous
