@@ -32,9 +32,9 @@ module load fcm/2019.09.0
 module load um
 
 # OASIS BEGIN
-PBD_OASIS_DIR=$${PWD}/lib/oasis
-export OASIS_INCLUDE_DIR=$${PBD_OASIS_DIR}/include
-export OASIS_LIB_DIR=$${PBD_OASIS_DIR}/lib
+export OASIS_ROOT=$${PWD}/lib/oasis
+export OASIS_INCLUDE_DIR=$${OASIS_ROOT}/include
+export OASIS_LIB_DIR=$${OASIS_ROOT}/lib
 export FPATH=$${OASIS_INCLUDE_DIR}:$$FPATH
 export LIBRARY_PATH=$${OASIS_LIB_DIR}:$$LIBRARY_PATH
 export LD_LIBRARY_PATH=$${OASIS_LIB_DIR}:$$LD_LIBRARY_PATH
@@ -87,23 +87,20 @@ src/dummygrib: | src
 
 src/gcom: | src
 	rm -rf $@
-	rm -rf src/GCOM-git
-	git clone -b dev git@github.com:ACCESS-NRI/GCOM src/GCOM-git
-	mv src/GCOM-git/Share/gcom4.5_access_config $@
-	rm -rf src/GCOM-git
+	git clone -b access-esm1.5 git@github.com:ACCESS-NRI/GCOM4 $@
 	sed -i '/build.target{ns}/d' $@/fcm-make/gcom.cfg
 	sed -i 's/-openmp/-qopenmp/g' $@/fcm-make/machines/nci_ifort_openmpi.cfg
 
 src/UM : | src
 	rm -rf $@
-	git clone git@github.com:ACCESS-NRI/UM_v7 $@
+	git clone -b access-esm1.5 git@github.com:ACCESS-NRI/UM_v7 $@
 	cp patch/UM_exe_generator-ACCESS1.5 $@/compile/
 
 src/mom5: | src
-	git clone https://github.com/OceansAus/ACCESS-ESM1.5-MOM5.git $@
+	git clone -b access-esm1.5 https://github.com/ACCESS-NRI/MOM5.git $@
 
 src/cice4.1: | src
-	git clone -b ESM_1.5 git@github.com:ACCESS-NRI/cice4 $@
+	git clone -b access-esm1.5 https://github.com/ACCESS-NRI/cice4.git $@
 	sed -i 's/\([[:space:]]*setenv CPLLIBDIR\).*$$/\1 $$OASIS_LIB_DIR/' $@/compile/comp_access-cm_cice.RJ.nP-mct
 	sed -i 's/\([[:space:]]*setenv CPLINCDIR\).*$$/\1 $$OASIS_INCLUDE_DIR/' $@/compile/comp_access-cm_cice.RJ.nP-mct
 	rm -f $@/compile/environs.raijin.nci.org.au ; touch $@/compile/environs.raijin.nci.org.au
@@ -156,7 +153,7 @@ bin/cice-12p: src/cice4.1 $(ENVFILE) lib/oasis | bin
 	source $(ENVFILE) ; cd $</compile ; csh ./comp_access-cm_cice.RJ.nP-mct 12
 
 bin/mom5xx : src/mom5 $(ENVFILE) lib/oasis | bin
-	source $(ENVFILE); cd $</exp; ./MOM_compile.csh --platform=access-cm2 --type=ACCESS-CM
+	source $(ENVFILE) ; cd $</exp ; csh ./MOM_compile.csh --platform=access-cm2 --type=ACCESS-CM
 	cp src/mom5/exec/access-cm2/ACCESS-CM/fms_ACCESS-CM.x $@
 
 .PHONY: um mom5 cice gcom oasis all srcs
