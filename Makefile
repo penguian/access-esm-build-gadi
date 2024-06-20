@@ -82,6 +82,7 @@ src/oasis: | src
 	git clone -b access-esm1.5 https://github.com/ACCESS-NRI/oasis3-mct.git $@
 	rm -rf $@/util/make_dir/config.nci
 	touch $@/util/make_dir/config.nci
+	sed -i 's/MCT_FCFLAGS = -O3 -xHost/MCT_FCFLAGS = -O3 -march=cascadelake -xCORE-AVX512/' $@/util/make_dir/make.nci
 
 src/dummygrib: | src
 	git clone https://github.com/ACCESS-NRI/dummygrib.git $@
@@ -96,9 +97,11 @@ src/UM : | src
 	rm -rf $@
 	git clone -b access-esm1.5 git@github.com:ACCESS-NRI/UM_v7 $@
 	cp patch/UM_exe_generator-ACCESS1.5 $@/compile/
+	grep -Rls '\-xHost' $@ | xargs sed -i 's/-xHost/-march=cascadelake -xCORE-AVX512/'
 
 src/mom5: | src
 	git clone -b access-esm1.5 https://github.com/ACCESS-NRI/MOM5.git $@
+	grep -Rls '\-xHost' $@ | xargs sed -i 's/-xHost/-march=cascadelake -xCORE-AVX512 -align array64byte/'
 
 src/cice4.1: | src
 	git clone -b access-esm1.5 https://github.com/ACCESS-NRI/cice4.git $@
@@ -106,6 +109,7 @@ src/cice4.1: | src
 	sed -i 's/\([[:space:]]*setenv CPLINCDIR\).*$$/\1 $$OASIS_INCLUDE_DIR/' $@/compile/comp_access-cm_cice.RJ.nP-mct
 	rm -f $@/compile/environs.raijin.nci.org.au ; touch $@/compile/environs.raijin.nci.org.au
 	cp patch/Macros.Linux.raijin.nci.org.au-mct $@/bld
+	grep -Rls '\-xHost' $@ | xargs sed -i 's/-xHost/-march=cascadelake -xCORE-AVX512/'
 
 
 # This section describes how to compile the libraries.
