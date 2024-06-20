@@ -6,11 +6,12 @@ ENVFILE=./environment.sh
 
 # DEFAULT TARGET: ALL (UM, MOM5, CICE)
 #########################################
-all : um mom5 cice
+all : um mom5 mppnccombine cice
 
 um: bin/um_hg3.exe
 um_dbg: bin/um_hg3_dbg.exe
 mom5: bin/mom5xx
+mppnccombine: bin/mppnccombine
 cice: bin/cice-12p
 oasis: lib/oasis
 gcom: lib/gcom
@@ -153,7 +154,10 @@ bin/cice-12p: src/cice4.1 $(ENVFILE) lib/oasis | bin
 	source $(ENVFILE) ; cd $</compile ; csh ./comp_access-cm_cice.RJ.nP-mct 12
 
 bin/mom5xx : src/mom5 $(ENVFILE) lib/oasis | bin
-	source $(ENVFILE) ; cd $</exp ; csh ./MOM_compile.csh --platform=access-cm2 --type=ACCESS-CM
+	source $(ENVFILE) ; cd $</exp ; csh ./MOM_compile.csh --platform=access-cm2 --type=ACCESS-CM --no_environ
 	cp src/mom5/exec/access-cm2/ACCESS-CM/fms_ACCESS-CM.x $@
 
-.PHONY: um mom5 cice gcom oasis all srcs
+bin/mppnccombine : src/mom5 bin/mom5xx | bin
+	cp src/mom5/bin/mppnccombine.access-cm2 $@
+
+.PHONY: um mom5 mppnccombine cice gcom oasis all srcs
